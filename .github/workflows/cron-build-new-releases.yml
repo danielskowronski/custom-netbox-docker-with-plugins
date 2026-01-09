@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write
   packages: write
+  actions: write
 
 env:
   SRC_REPO: netbox-community/netbox
