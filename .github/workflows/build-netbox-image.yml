@@ -114,6 +114,7 @@ jobs:
 
           TAG="${{ steps.vars.outputs.dst_tag }}"
           TITLE="NetBox image ${TAG}"
+          # FIXME: improve notes content
           NOTES=$'Built from: '"${SRC_REPO}:${{ steps.vars.outputs.src_tag }}"$'\n'"Image: ${{ steps.vars.outputs.dst_ref }}"$'\n'
           OUT="report-${TAG}.txt"
 

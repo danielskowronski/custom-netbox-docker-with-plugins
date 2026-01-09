@@ -24,7 +24,11 @@ jobs:
           set -euo pipefail
           TAG="$(curl -fsSL "https://api.github.com/repos/${SRC_REPO}/releases/latest" | jq -r .tag_name)"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Check if we already built this upstream tag
         id: check
         env:
