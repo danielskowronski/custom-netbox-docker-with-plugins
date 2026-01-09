@@ -1,0 +1,119 @@
+---
+name: build and release
+
+on:
+  workflow_dispatch:
+    inputs:
+      src_tag:
+        description: "NetBox application tag to build (e.g. v4.5.0); latest release of netbox-community/netbox used if empty."
+        required: false
+        type: string
+      dst_suffix:
+        description: "Build suffix to append to image tag; current UTC date and time used if empty."
+        required: false
+        type: string
+      prerelease:
+        description: "Mark GitHub release as prerelease; by default creates a normal release."
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  SRC_REPO: netbox-community/netbox
+  DST_IMG: ghcr.io/danielskowronski/custom-netbox-docker-with-plugins
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve SRC_TAG and DST_SUFFIX
+        id: vars
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SRC_TAG="${{ inputs.src_tag }}"
+          if [[ -z "${SRC_TAG}" ]]; then
+            SRC_TAG="$(curl -fsSL "https://api.github.com/repos/${SRC_REPO}/releases/latest" | jq -r .tag_name)"
+          fi
+
+          DST_SUFFIX="${{ inputs.dst_suffix }}"
+          if [[ -z "${DST_SUFFIX}" ]]; then
+            DST_SUFFIX="$(date -u +"%Y%m%d%H%M%S")"
+          fi
+
+          DST_TAG="${SRC_TAG}-${DST_SUFFIX}"
+          DST_REF="${DST_IMG}:${DST_TAG}"
+
+          echo "src_tag=${SRC_TAG}" >> "$GITHUB_OUTPUT"
+          echo "dst_suffix=${DST_SUFFIX}" >> "$GITHUB_OUTPUT"
+          echo "dst_tag=${DST_TAG}" >> "$GITHUB_OUTPUT"
+          echo "dst_ref=${DST_REF}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push multi-arch image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.vars.outputs.dst_ref }}
+
+      - name: Pull amd64 image for report generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker pull --platform linux/amd64 "${{ steps.vars.outputs.dst_ref }}"
+
+      - name: Generate report from image
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="report-${{ steps.vars.outputs.dst_tag }}.txt"
+          docker run --rm "${{ steps.vars.outputs.dst_ref }}" /report.sh > "${OUT}"
+          ls -lah "${OUT}"
+
+      - name: Create GitHub release + upload report asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="${{ steps.vars.outputs.dst_tag }}"
+          TITLE="NetBox image ${TAG}"
+          NOTES=$'Built from: '"${SRC_REPO}:${{ steps.vars.outputs.src_tag }}"$'\n'"Image: ${{ steps.vars.outputs.dst_ref }}"$'\n'
+          OUT="report-${TAG}.txt"
+
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "Release ${TAG} already exists; uploading asset."
+          else
+            if [[ "${{ inputs.prerelease }}" == "true" ]]; then
+              gh release create "${TAG}" --title "${TITLE}" --notes "${NOTES}" --prerelease
+            else
+              gh release create "${TAG}" --title "${TITLE}" --notes "${NOTES}"
+            fi
+          fi
+
+          gh release upload "${TAG}" "${OUT}" --clobber
