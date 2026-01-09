@@ -1,0 +1,91 @@
+# all from https://netboxlabs.com/plugins/ which support v4
+
+## https://github.com/amyasnikov/validity
+netbox-validity
+
+## https://github.com/DanSheps/netbox-routing
+netbox-routing
+
+## https://github.com/FlxPeters/netbox-plugin-prometheus-sd
+netbox-plugin-prometheus-sd
+
+## https://github.com/k1nky/netbox-otp-plugin
+netbox-otp-plugin
+
+## https://github.com/netbox-community/netbox-napalm-plugin
+netbox-napalm-plugin
+
+## https://github.com/devon-mar/netbox-lists
+netbox-lists
+
+## https://github.com/DanSheps/netbox-lifecycle
+netbox-lifecycle
+
+## https://github.com/devon-mar/netbox-kea
+netbox-kea
+
+## https://github.com/ArnesSI/netbox-inventory
+netbox-inventory
+
+## https://github.com/NetTech2001/netbox-interface-synchronization
+netbox-interface-synchronization
+
+## https://github.com/jasonyates/netbox-documents
+netbox-documents
+
+## https://github.com/Alef-Burzmali/netbox-data-flows/
+netbox-data-flows
+
+## https://github.com/mlebreuil/netbox-contract
+netbox-contract
+
+## https://github.com/miaow2/netbox-config-diff
+netbox-config-diff
+
+## https://github.com/Kani999/netbox-attachments
+netbox-attachments
+
+## https://github.com/renatoalmeidaoliveira/nbservice
+nb-service
+
+## https://github.com/renatoalmeidaoliveira/nbrisk
+NbRisk
+
+## https://github.com/netbox-community/netbox-topology-views
+netbox-topology-views
+
+## https://gitlab.com/slurpit.io/slurpit_netbox
+slurpit_netbox
+
+## https://github.com/Onemind-Services-LLC/netbox-secrets
+netbox-secrets
+
+## https://github.com/minitriga/netbox-reorder-rack
+netbox-reorder-rack
+
+## https://github.com/netbox-community/netbox-qrcode
+netbox-qrcode
+
+## https://gitlab.com/ip-fabric/integrations/ipfabric-netbox
+ipfabric-netbox
+
+## https://github.com/netbox-community/netbox-floorplan-plugin
+netbox-floorplan-plugin
+
+## https://github.com/peteeckel/netbox-plugin-dns
+netbox-plugin-dns
+
+## https://github.com/netbox-community/netbox-bgp
+netbox-bgp
+
+# disabled / skipped
+
+## https://github.com/jeremyschulman/netbox-plugin-auth-saml2 - see https://github.com/jeremyschulman/netbox-plugin-auth-saml2/issues/92
+
+## https://github.com/netdevopsbr/netbox-proxbox - not working with v4
+
+## https://netboxlabs.com/blog/netbox-labs-and-lightyear-partner-to-ease-network-connectivity-management/ - no docs
+
+## change management - built in???
+
+## branching - built in???
