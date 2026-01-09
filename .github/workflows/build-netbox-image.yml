@@ -8,8 +8,13 @@ on:
         description: "NetBox application tag to build (e.g. v4.5.0); latest release of netbox-community/netbox used if empty."
         required: false
         type: string
+      is_base_release:
+        description: "Is this first build of a new NetBox base release? If true, no suffix is appended to the image tag and this is used to handle automated builds."
+        required: false
+        type: boolean
+        default: false
       dst_suffix:
-        description: "Build suffix to append to image tag; current UTC date and time used if empty."
+        description: "Build suffix to append to image tag; current UTC date and time used if empty. Ignored if `is_base_release` is true."
         required: false
         type: string
       prerelease:
@@ -50,7 +55,11 @@ jobs:
             DST_SUFFIX="$(date -u +"%Y%m%d%H%M%S")"
           fi
 
-          DST_TAG="${SRC_TAG}-${DST_SUFFIX}"
+          if [[ "${{ inputs.is_base_release }}" == "true" ]]; then
+            DST_TAG="${SRC_TAG}"
+          else
+            DST_TAG="${SRC_TAG}-${DST_SUFFIX}"
+          fi
           DST_REF="${DST_IMG}:${DST_TAG}"
 
           echo "src_tag=${SRC_TAG}" >> "$GITHUB_OUTPUT"
@@ -79,6 +88,8 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.vars.outputs.dst_ref }}
+          build-args: |
+            SRC_TAG=${{ steps.vars.outputs.src_tag }}
 
       - name: Pull amd64 image for report generation
         shell: bash
