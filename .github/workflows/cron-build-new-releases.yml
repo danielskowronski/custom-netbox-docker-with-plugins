@@ -1,0 +1,48 @@
+---
+name: watch for new upstream releases and trigger build if not yet built
+
+on:
+  schedule:
+    - cron: "37 21 * * *" 
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  SRC_REPO: netbox-community/netbox
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get latest upstream release tag
+        id: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="$(curl -fsSL "https://api.github.com/repos/${SRC_REPO}/releases/latest" | jq -r .tag_name)"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Check if we already built this upstream tag
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "${{ steps.upstream.outputs.tag }}" >/dev/null 2>&1; then
+            echo "already=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Trigger the build workflow for new upstream tag
+        if: steps.check.outputs.already == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run "build-netbox-image.yml" -f src_tag="${{ steps.upstream.outputs.tag }}" -f prerelease=false -f is_base_release=true
