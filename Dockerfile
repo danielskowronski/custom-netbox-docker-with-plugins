@@ -12,7 +12,7 @@ COPY requirements.txt /requirements.txt
 COPY tools/inside-report.sh /report.sh
 
 RUN mkdir -p /opt/netbox/netbox/media/netbox-attachments && \
-  chown unit /opt/netbox/netbox/media/netbox-attachments
+  chown $(stat -c '%U' /opt/netbox/netbox/media):$(stat -c '%G' /opt/netbox/netbox/media) /opt/netbox/netbox/media/netbox-attachments
 
 RUN /usr/local/bin/uv pip install \
   --python /opt/netbox/venv/bin/python \
